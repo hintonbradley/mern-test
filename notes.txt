@@ -1,0 +1,93 @@
+*************************
+** MongoDB Atlas Setup **
+*************************
+
+Step 1: Sign into to mongodb.com
+
+Step 2: Create a new project
+
+Step 3: Go to your new project and click "Build a Cluster"
+
+Step 4: Choose "AWS" for your Cloud Provider
+
+Step 5: Select a region close to you
+
+Step 6: Choose a "free" plan
+
+Step 7: Under "Cluster Name" choose a name
+
+Step 8: Wait for your cluster to be created
+
+Step 9: Once your cluster has been created, under "Security" tab, we need to "Add a New Database User"
+
+Step 10: Enter in your username and password for the new database user
+
+Step 11: Select "Read and Write to any database"
+
+Step 12: Click "Add user"
+
+Step 13: Click the "Whitelist IP" tab and click the "Add IP Address" button
+
+Step 14: Click "Add current IP address"
+
+Step 15: Click on "Clusters" and click the "Connect" button
+
+Step 16: Click "Connect your application" 
+
+Step 17: Copy th string and save it in a secure (non-public) place to use later to connect your application.
+mongodb+srv://jmebradl:<password>@devconnector-v3uvm.mongodb.net/test?retryWrites=true&w=majority
+
+Step 18: Go back to your dashboard and click "Collections" in order to access your database on cloud.mongodb.com
+
+
+****************
+** Setup app  **
+****************
+
+Step 1: Create a new directory for your app
+
+Step 2: Create a .gitignore file and add node_moduels to the file
+$ touch .gitignore
+$ echo "node_modules/" >> .gitignore
+
+Step 3: Initialize a git repository
+$ git init
+
+Step 4: Initialize npm
+$ npm init
+
+Step 5: In the package.json file, change "main" value to "server.js"
+...
+"main":"server.js"
+...
+
+Step 6: Install regular dependencies
+$ npm i --s express express-validator bcryptjs config gravatar jsonwebtoken mongoose request
+
+Step 7: Install dev dependencies
+$ npm i -D --s nodemon concurrently
+
+Step 8: Create the main entry file:
+$ touch server.js
+
+Step 9: Add boilerplate code to your server.js file: 
+const express = require('express');
+const app = express();
+app.get('/', (req, res) => res.send('API running'));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+
+Step 10: Create the following scrips in your package.json file:
+...
+"scripts": {
+    "start": "node server",
+    "server": "nodemon server"
+},
+...
+
+Step 11: Run nodemon to get your app started
+$ npm run server
+ 
+Step 12: Using Postman app, make a GET request to http://localhost:5000. The response should be "API running"
+
+Step 13: 
