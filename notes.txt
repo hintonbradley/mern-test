@@ -34,8 +34,7 @@ Step 15: Click on "Clusters" and click the "Connect" button
 
 Step 16: Click "Connect your application" 
 
-Step 17: Copy th string and save it in a secure (non-public) place to use later to connect your application.
-mongodb+srv://jmebradl:<password>@devconnector-v3uvm.mongodb.net/test?retryWrites=true&w=majority
+Step 17: Copy the string and save it in a secure (non-public) place to use later to connect your application.
 
 Step 18: Go back to your dashboard and click "Collections" in order to access your database on cloud.mongodb.com
 
@@ -90,4 +89,348 @@ $ npm run server
  
 Step 12: Using Postman app, make a GET request to http://localhost:5000. The response should be "API running"
 
-Step 13: 
+Step 13: Add files and commit your repository with git.
+
+**********************
+** Connecting Mongo **
+**********************
+
+Step 1: Create a directory called config in the root directory and add a file inside called "default.json" 
+$ mkdir config && cd config && touch default.json && cd ..
+
+Note: Using the dependency "config" in node_moduels, we can create global values we can use throughout our app - held in the default.json values. 
+
+Step 2: In the new default.json file, create a key-value pair with a key of "mongoURI" and add in the mongo string (from MongoDB Atlas Setup-step 17) as the value.
+
+Step 3: Be sure to add in your password in the string instead of <password>
+
+Step 4: Create another file in the config folder called "db.js"
+$ touch config/db.js
+
+Step 5: Add the boilerplate code:
+const mongoose = require('mongoose');
+const config = require('config');
+const db = config.get('mongoURI');
+
+const connectDB = async () => {
+    try {
+        await mongoose.connect(db);
+        console.log('MongoDB connected!')
+    } catch(err) {
+        console.error(err.message);
+
+        // to exit process with failure:
+        process.exit(1);
+    }
+}
+
+module.exports = connectDB;
+
+Step 6: In the server.js file, require the db.js file, and then write a method to connect to the database:
+const express = require('express');
+const connectDB = require('./config/db');
+...
+connectDB();
+app.get...
+
+Step 7: Since we receive an error when starting our server 
+(DeprecationWarning: current Server Discovery and Monitoring engine is deprecated, and will be removed in a future version. To use the new Server Discover and Monitoring engine, pass option { useUnifiedTopology: true } to the MongoClient constructor)
+, and this one, 
+(DeprecationWarning: current Server Discovery and Monitoring engine is deprecated, and will be removed in a future version. To use the new Server Discover and Monitoring engine, pass option { useUnifiedTopology: true } to the MongoClient constructor.)
+, we need to add in a configuration object to our connect method in the db.js file.
+...
+await mongoose.connect(db, 
+    { 
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useCreateIndex: true
+    }
+);
+...
+
+*************************
+** Creating API Routes **
+*************************
+
+Step 1: Create a directory called "routes" to hold all the files that have code for api routes that return json data.
+$ mkdir routes
+
+Step 2: Create a directory inside the "routes" directory called "api"
+$ mkdir routes/api
+
+Step 3: Create all your files for your api routes (e.g. users.js, comments.js, auth.js, etc.)
+$ touch routes/api/auth.js && touch routes/api/users.js ...
+
+Step 4: Add boilerplate code to each new api routes file:
+const express = require('express');
+const router = express.Router();
+
+// @route   GET api/users
+// @desc    Test route
+// @access  Public
+router.get('/', (req, res) => res.send('User route'));
+
+module.exports = router;
+
+Step 5: Require your new files in the server.js file and define your Routes
+...
+app.get('/', (req, res) => res.send('API running'));
+
+app.use('/api/users', require('./routes/api/users'));
+app.use('/api/auth', require('./routes/api/auth'));
+app.use('/api/profile', require('./routes/api/profile'));
+app.use('/api/posts', require('./routes/api/posts'));
+...
+
+Step 6: Confirm routes are working in Postman
+http://localhost:5000/api/profile
+http://localhost:5000/api/posts
+http://localhost:5000/api/users
+http://localhost:5000/api/auth
+
+
+*********************
+** Creating Models **
+*********************
+
+Step 1: In the root directory, create a "models" directory and inside that, create each model file.
+$ mkdir models && touch models/Users.js && touch models/Posts.js && touch models/Profile.js && touch models/Auth.js
+
+Step 2: Require mongoose in each file
+const mongoose = require('mongoose');
+
+Step 3: Create a schema for each
+...
+const UserSchema = new mongooose.Schema({
+    // schema object goes here
+})
+
+Step 4: Export your model for each
+...
+module.exports = User = mongoose.model('user', UserSchema);
+
+***************************
+** Creating POST Request **
+***************************
+
+Step 1: Make sure all your user model is correct in your /modelsUsers.js file
+const mongoose = require('mongoose');
+const UserSchema = new mongooose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    avatar: {
+        type: String
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    }
+})
+module.exports = User = mongoose.model('user', UserSchema);
+
+Step 2: in the /routes/api/users.js file, change the get request to a POST request
+const express = require('express');
+const router = express.Router();
+
+// @route   POST api/users
+// @desc    Register a user
+// @access  Public
+router.post('/', (req, res) => res.send('User route'));
+
+module.exports = router;
+
+Step 3: In the routes/api/users.js file, add a console.log to view the req.body when you make a request
+...
+router.post('/', (req, res) => {
+    console.log(req.body)
+    res.send('User route');
+});
+...
+
+Step 4: Add the body parser middleware to the server.js file
+...
+connectDB();
+
+// Init middleware:
+app.use(express.json({extended:false}));
+
+app.get('/', (req, res) => res.send('API running'));
+...
+
+Step 5: In Postman, change from a GET request to a POST request
+
+Step 6: In Postman, add a Header with a key:value pair as Content-Type:application/json
+
+Step 7: Add some raw data to the body of the post request and click send
+{
+    "name":"James"
+}
+
+Step 8: Check your terminal to view the raw data (req.body)
+
+Step 9: Add validation to your user model
+...
+const { check, validationResult } = require('express-validator/check');
+...
+router.post(
+    '/', 
+    [
+        check('name', 'Name is required')
+        .not()
+        .isEmpty(),
+        check('email', 'Please include a valid email').isEmail(),
+        check(
+            'password',
+            'Please enter a password with 6 or more characters'
+        ).isLength({ min: 6 })
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() })
+        }
+
+    res.send('User route');
+
+Step 10: Make a post request in Postman to see if validation is working correctly.  (Will return error 400 and errors in res if any value is not valid.)
+
+Step 11: In the users.js file, add a check to see if user already exists
+...
+const { check, validationResult } = require('express-validator/check');
+...
+const errors = validationResult(req);
+if(!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() })
+}
+
+const { name, email, password } = req.body;
+
+// see if user exists
+
+try {
+    let user = await User.findOne({ email });
+
+    if (user) {
+        return res.status(400).json({errors: [{msg: 'User already exists'}]});
+    }
+}
+...
+
+Step 12: Create a gravatar for the new user:
+    const express = require('express');
+    const router = express.Router();
+    const gravatar = require('gravatar');
+    ...
+    if (user) { 
+        res.status(400).json({errors: [{msg: 'User already exists'}]});
+    }
+
+    // get user's gravatar
+
+    const avatar = gravatar.url(email, {
+        s: '200',
+        r: 'pg',
+        d: 'mm'
+    })
+
+    user = new User({
+        name,
+        email,
+        avatar,
+        password
+    })
+}
+
+Step 13: Encrypt the user's password
+user = new User({
+    name,
+    email,
+    avatar,
+    password
+})
+
+// encrypt password
+
+const salt = await bcrypt.genSalt(10);
+user.password = await bcrypt.hash(password, salt);
+await user.save();
+
+Step 14: Create a catch at the end
+...
+    const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(password, salt);
+            await user.save();
+
+        // return jasonwebtoken
+        res.send('User registered');
+        } catch (err) {
+            console.error(err.message);
+            res.status(500).send('Server error')
+        }
+    }
+);
+
+module.exports = router;
+
+Step 15: Go to Postman and attempt to create a POST request that will save user to database.
+
+************************
+** GET JASON WEBTOKEN **
+************************
+
+Step 1: In the routes/users.js file, require jason web token
+...
+const jwt = require('jasonwebtoken');
+...
+
+Step 2: In the same file, add the payload after you save a user.
+...
+ await user.save();
+
+const payload = {
+    user: {
+        id: user.id
+    }
+}
+...
+
+Step 3: In the config/default.json file, add in a key:value paid for jwtSecret token.
+... ,
+"jwtSecret": "mysecrettoken",
+...
+
+Step 4: Import the default.json file into your users.js file to get access to the token.
+...
+const config = require('config');
+...
+
+Step 5: Add in code to get token to your users.js file.
+...
+id: user.id
+    }
+};
+
+jwt.sign(
+    payload,
+    config.get('jwtSecret'),
+    {expiresIn: 360000},
+    (err, token) => {
+        if(err) throw err;
+        res.json({token})
+    }
+);
+} catch (err) {
+...
+
+Step 6: In Postman, place a new POST request to add a user and be sure you receive a jsonwebtoken returned. 
